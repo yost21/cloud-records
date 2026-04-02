@@ -36,6 +36,8 @@ export default function App() {
   const [loadingList, setLoadingList] = useState(true);
   const [listError,   setListError]   = useState("");
   const [isAdmin,     setIsAdmin]     = useState(false);
+  const [showTip,     setShowTip]     = useState(false);
+  const [copied,      setCopied]      = useState(false);
 
   const { state, play, togglePlay, skipNext, skipPrev, seek, setVolume, currentTrack } =
     usePlayer(tracks);
@@ -94,8 +96,8 @@ export default function App() {
 
   return (
     <div className="app">
-      <div className="tip-banner">
-        All music <span className="tip-roughly">(roughly)</span> self-produced. Tip me so I can afford a real producer.
+      <div className="tip-banner" onClick={() => setShowTip(true)} style={{cursor: "pointer"}}>
+        All music <span className="tip-roughly">(roughly)</span> self-produced. <span className="tip-cta">Tip me</span> so I can afford a real producer.
       </div>
       <header className="app-header">
         <div className="logo" onClick={handleLogoClick} style={{cursor: "pointer"}}>
@@ -158,6 +160,54 @@ export default function App() {
           onClose    ={() => setShowUpload(false)}
           onUploaded ={() => { fetchTracks(); }}
         />
+      )}
+
+      {showTip && (
+        <div className="modal-overlay" onClick={() => setShowTip(false)}>
+          <div className="modal tip-modal" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowTip(false)}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+            <h3>Support Cloud Records</h3>
+            <p className="tip-sub">Every tip goes directly toward better gear, mixing, and maybe one day... a real producer.</p>
+
+            <div className="tip-options">
+              <a
+                href="https://buy.stripe.com/test_fZu14peAv7aC1843Uhawo00"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="tip-option tip-card"
+              >
+                <div className="tip-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <rect x="1" y="4" width="22" height="16" rx="2" />
+                    <line x1="1" y1="10" x2="23" y2="10" />
+                  </svg>
+                </div>
+                <div className="tip-label">Tip with Card</div>
+                <div className="tip-desc">Visa, Mastercard, Apple Pay</div>
+              </a>
+
+              <div className="tip-option tip-crypto" onClick={() => {
+                navigator.clipboard.writeText("yxsim-sclu2-ed6yw-julz4-yn5th-hwyvs-d3pab-sflmr-iv4ah-yxikq-nae");
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}>
+                <div className="tip-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <text x="12" y="16" textAnchor="middle" fill="currentColor" fontSize="10" fontWeight="bold" stroke="none">ICP</text>
+                  </svg>
+                </div>
+                <div className="tip-label">{copied ? "Copied!" : "Tip with ICP"}</div>
+                <div className="tip-desc tip-address">yxsim-sclu2-ed6yw-julz4-yn5th-hwyvs-d3pab-sflmr-iv4ah-yxikq-nae</div>
+                <div className="tip-hint">{copied ? "Paste in your wallet" : "Click to copy address"}</div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

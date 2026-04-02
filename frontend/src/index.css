@@ -53,6 +53,99 @@ body {
   font-style: italic;
   opacity    : 0.7;
 }
+.tip-cta {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  font-weight: 600;
+  color: var(--accent, #c8956c);
+}
+.tip-banner:hover .tip-cta {
+  text-decoration-style: solid;
+}
+
+/* ── Tip Modal ─────────────────────────────────────── */
+.tip-modal {
+  max-width  : 420px;
+  text-align : center;
+  position   : relative;
+}
+.tip-modal h3 {
+  margin     : 0 0 6px;
+  font-size  : 18px;
+  color      : var(--text-1);
+}
+.tip-sub {
+  font-size  : 13px;
+  color      : var(--text-3);
+  margin     : 0 0 20px;
+  line-height: 1.5;
+}
+.tip-options {
+  display : flex;
+  gap     : 12px;
+}
+@media (max-width: 500px) {
+  .tip-options { flex-direction: column; }
+}
+.tip-option {
+  flex           : 1;
+  padding        : 20px 16px;
+  border         : 1px solid var(--border);
+  border-radius  : 12px;
+  cursor         : pointer;
+  transition     : all 0.2s;
+  text-decoration: none;
+  color          : inherit;
+  display        : flex;
+  flex-direction : column;
+  align-items    : center;
+  gap            : 8px;
+}
+.tip-option:hover {
+  border-color : var(--accent, #c8956c);
+  background   : color-mix(in srgb, var(--accent, #c8956c) 6%, transparent);
+  transform    : translateY(-2px);
+  box-shadow   : 0 4px 12px rgba(0,0,0,0.08);
+}
+.tip-icon {
+  color   : var(--accent, #c8956c);
+  opacity : 0.8;
+}
+.tip-option:hover .tip-icon { opacity: 1; }
+.tip-label {
+  font-size   : 14px;
+  font-weight : 600;
+  color       : var(--text-1);
+}
+.tip-desc {
+  font-size : 11px;
+  color     : var(--text-3);
+}
+.tip-address {
+  font-family : monospace;
+  font-size   : 9px;
+  word-break  : break-all;
+  line-height : 1.3;
+  opacity     : 0.6;
+  max-width   : 160px;
+}
+.tip-hint {
+  font-size  : 10px;
+  color      : var(--accent, #c8956c);
+  font-weight: 500;
+}
+.modal-close {
+  position   : absolute;
+  top        : 12px;
+  right      : 12px;
+  background : none;
+  border     : none;
+  cursor     : pointer;
+  color      : var(--text-3);
+  padding    : 4px;
+}
+.modal-close:hover { color: var(--text-1); }
 
 /* ── Header ─────────────────────────────────────────────────────────────────── */
 .app-header {
