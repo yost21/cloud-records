@@ -39,6 +39,21 @@ body {
   height         : 100dvh;
 }
 
+/* ── Tip Banner ────────────────────────────────────────────────────────────── */
+.tip-banner {
+  background     : color-mix(in srgb, var(--accent, #c8956c) 12%, transparent);
+  border-bottom  : 1px solid color-mix(in srgb, var(--accent, #c8956c) 25%, transparent);
+  padding        : 6px 20px;
+  font-size      : 11px;
+  text-align     : center;
+  color          : var(--text-2);
+  letter-spacing : 0.02em;
+}
+.tip-roughly {
+  font-style: italic;
+  opacity    : 0.7;
+}
+
 /* ── Header ─────────────────────────────────────────────────────────────────── */
 .app-header {
   display         : flex;

@@ -94,6 +94,9 @@ export default function App() {
 
   return (
     <div className="app">
+      <div className="tip-banner">
+        All music <span className="tip-roughly">(roughly)</span> self-produced. Tip me so I can afford a real producer.
+      </div>
       <header className="app-header">
         <div className="logo" onClick={handleLogoClick} style={{cursor: "pointer"}}>
           <CloudLogo />
