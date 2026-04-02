@@ -363,22 +363,22 @@ export default function Playlist({ tracks, currentIndex, isPlaying, isAdmin, onS
         </ul>
       ) : (
         <div className="album-groups">
-          {originalGroups.length > 0 && (
-            <>
-              <div className="section-divider">
-                <span className="section-label">Originals</span>
-                <span className="section-count">{originalGroups.reduce((n, g) => n + g.tracks.length, 0)} tracks</span>
-              </div>
-              {originalGroups.map((group, i) => renderAlbumGroup(group, i))}
-            </>
-          )}
           {coverGroups.length > 0 && (
             <>
               <div className="section-divider">
                 <span className="section-label">Covers</span>
                 <span className="section-count">{coverGroups.reduce((n, g) => n + g.tracks.length, 0)} tracks</span>
               </div>
-              {coverGroups.map((group, i) => renderAlbumGroup(group, originalGroups.length + i))}
+              {coverGroups.map((group, i) => renderAlbumGroup(group, i))}
+            </>
+          )}
+          {originalGroups.length > 0 && (
+            <>
+              <div className="section-divider">
+                <span className="section-label">Originals</span>
+                <span className="section-count">{originalGroups.reduce((n, g) => n + g.tracks.length, 0)} tracks</span>
+              </div>
+              {originalGroups.map((group, i) => renderAlbumGroup(group, coverGroups.length + i))}
             </>
           )}
         </div>

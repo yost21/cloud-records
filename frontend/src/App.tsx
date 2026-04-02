@@ -198,12 +198,13 @@ export default function App() {
                 <div className="tip-icon">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <circle cx="12" cy="12" r="10" />
-                    <text x="12" y="16" textAnchor="middle" fill="currentColor" fontSize="10" fontWeight="bold" stroke="none">ICP</text>
+                    <path d="M8 12h8M12 8v8" />
                   </svg>
                 </div>
-                <div className="tip-label">{copied ? "Copied!" : "Tip with ICP"}</div>
+                <div className="tip-label">{copied ? "Copied!" : "Tip with Crypto"}</div>
+                <div className="tip-desc">ICP, ckBTC, ckETH, ckUSDC</div>
                 <div className="tip-desc tip-address">yxsim-sclu2-ed6yw-julz4-yn5th-hwyvs-d3pab-sflmr-iv4ah-yxikq-nae</div>
-                <div className="tip-hint">{copied ? "Paste in your wallet" : "Click to copy address"}</div>
+                <div className="tip-hint">{copied ? "Paste in your wallet" : "Click to copy ICP address"}</div>
               </div>
             </div>
           </div>
