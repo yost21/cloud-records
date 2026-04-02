@@ -1,0 +1,1003 @@
+/* ── Reset & tokens ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg          : #fafafa;
+  --surface     : #ffffff;
+  --surface-2   : #f5f0eb;
+  --surface-3   : #ede5dc;
+  --border      : #e8dfd6;
+  --border-light: #d6ccc2;
+  --accent      : #e8913a;
+  --accent-soft : #f5c28a;
+  --accent-dim  : rgba(232, 145, 58, 0.10);
+  --accent-glow : rgba(232, 145, 58, 0.25);
+  --text-1      : #1a1a1a;
+  --text-2      : #6b5e52;
+  --text-3      : #a89888;
+  --success     : #4caf50;
+  --error-color : #e55353;
+  --radius      : 10px;
+  --radius-sm   : 6px;
+  --transition  : 140ms ease;
+  font-family   : -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size     : 14px;
+  color-scheme  : light;
+}
+
+body {
+  background : var(--bg);
+  color      : var(--text-1);
+  height     : 100dvh;
+  overflow   : hidden;
+}
+
+/* ── App shell ───────────────────────────────────────────────────────────────── */
+.app {
+  display        : flex;
+  flex-direction : column;
+  height         : 100dvh;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+.app-header {
+  display         : flex;
+  align-items     : center;
+  justify-content : space-between;
+  padding         : 0 24px;
+  height          : 56px;
+  border-bottom   : 1px solid var(--border);
+  background      : var(--surface);
+  flex-shrink     : 0;
+  z-index         : 10;
+}
+
+.logo {
+  display     : flex;
+  align-items : center;
+  gap         : 10px;
+}
+.logo-cloud {
+  color : var(--accent);
+}
+.logo-text {
+  font-size   : 18px;
+  font-weight : 700;
+  letter-spacing: -0.5px;
+  color       : var(--text-1);
+}
+.logo-badge {
+  font-size     : 10px;
+  font-weight   : 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color         : var(--accent);
+  background    : var(--accent-dim);
+  padding       : 2px 6px;
+  border-radius : 20px;
+  border        : 1px solid var(--accent-glow);
+}
+
+.btn-upload {
+  background    : var(--accent);
+  color         : #fff;
+  border        : none;
+  border-radius : var(--radius-sm);
+  padding       : 7px 16px;
+  font-size     : 13px;
+  font-weight   : 600;
+  cursor        : pointer;
+  transition    : opacity var(--transition), box-shadow var(--transition);
+}
+.btn-upload:hover {
+  opacity    : 0.88;
+  box-shadow : 0 0 18px var(--accent-glow);
+}
+
+/* ── Body ───────────────────────────────────────────────────────────────────── */
+.app-body {
+  display  : flex;
+  flex     : 1;
+  overflow : hidden;
+  min-height: 0;
+}
+
+/* ── Playlist ───────────────────────────────────────────────────────────────── */
+.playlist {
+  width        : 320px;
+  flex-shrink  : 0;
+  display      : flex;
+  flex-direction: column;
+  border-right : 1px solid var(--border);
+  background   : var(--surface);
+  overflow     : hidden;
+}
+
+.playlist-header {
+  display         : flex;
+  align-items     : center;
+  justify-content : space-between;
+  padding         : 16px 20px 12px;
+  border-bottom   : 1px solid var(--border);
+  flex-shrink     : 0;
+}
+.playlist-title {
+  font-size   : 12px;
+  font-weight : 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color       : var(--text-2);
+}
+.track-count {
+  font-size : 12px;
+  color     : var(--text-3);
+}
+
+/* ── Playlist Controls ─────────────────────────────── */
+.playlist-controls {
+  display     : flex;
+  align-items : center;
+  gap         : 10px;
+}
+.view-toggle {
+  background  : none;
+  border      : 1px solid var(--border);
+  border-radius: 6px;
+  padding     : 4px 6px;
+  cursor      : pointer;
+  color       : var(--text-3);
+  display     : flex;
+  align-items : center;
+  transition  : all 0.15s;
+}
+.view-toggle:hover { color: var(--text-1); border-color: var(--text-3); }
+.view-toggle.active { color: var(--accent); border-color: var(--accent); }
+
+/* ── Album Groups ──────────────────────────────────── */
+.album-groups {
+  flex       : 1;
+  overflow-y : auto;
+  overflow-x : hidden;
+}
+.album-group {
+  border-bottom: 1px solid var(--border);
+}
+.album-group.active-album {
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+}
+.album-header {
+  display     : flex;
+  align-items : center;
+  gap         : 12px;
+  padding     : 12px 20px;
+  cursor      : pointer;
+  transition  : background 0.15s;
+}
+.album-header:hover {
+  background: color-mix(in srgb, var(--text-1) 4%, transparent);
+}
+.album-art-small {
+  width        : 36px;
+  height       : 36px;
+  border-radius: 6px;
+  overflow     : hidden;
+  flex-shrink  : 0;
+  background   : var(--border);
+  display      : flex;
+  align-items  : center;
+  justify-content: center;
+}
+.album-art-small img {
+  width  : 100%;
+  height : 100%;
+  object-fit: cover;
+}
+.album-info {
+  flex     : 1;
+  min-width: 0;
+}
+.album-name {
+  display   : block;
+  font-size : 13px;
+  font-weight: 600;
+  color     : var(--text-1);
+  white-space: nowrap;
+  overflow  : hidden;
+  text-overflow: ellipsis;
+}
+.album-count {
+  font-size : 11px;
+  color     : var(--text-3);
+}
+.album-chevron {
+  flex-shrink: 0;
+  color      : var(--text-3);
+  transition : transform 0.2s;
+}
+.album-chevron.collapsed {
+  transform: rotate(-90deg);
+}
+.album-drag-handle {
+  flex-shrink : 0;
+  cursor      : grab;
+  padding     : 2px;
+}
+.album-drag-handle:active { cursor: grabbing; }
+.album-group.album-dragging {
+  opacity: 0.4;
+}
+.album-group.album-drop-target {
+  border-top: 2px solid var(--accent, #c8956c);
+}
+.album-tracks {
+  padding-left: 0;
+}
+.album-tracks .track-item {
+  padding-left: 28px;
+}
+
+/* ── Track Actions (edit/delete buttons) ───────────── */
+.track-actions {
+  display    : flex;
+  gap        : 4px;
+  flex-shrink: 0;
+  opacity    : 0;
+  transition : opacity 0.15s;
+}
+.track-item:hover .track-actions {
+  opacity: 1;
+}
+.track-action-btn {
+  background : none;
+  border     : 1px solid transparent;
+  border-radius: 4px;
+  padding    : 4px;
+  cursor     : pointer;
+  color      : var(--text-3);
+  display    : flex;
+  align-items: center;
+  transition : all 0.15s;
+}
+.track-action-btn:hover {
+  color      : var(--text-1);
+  border-color: var(--border);
+  background : color-mix(in srgb, var(--text-1) 5%, transparent);
+}
+.track-action-btn.confirm {
+  color      : #e55;
+  border-color: #e55;
+}
+
+/* ── Inline Edit Form ──────────────────────────────── */
+.track-edit {
+  flex       : 1;
+  min-width  : 0;
+  display    : flex;
+  flex-direction: column;
+  gap        : 4px;
+  padding    : 4px 0;
+}
+.edit-input {
+  background : var(--surface);
+  border     : 1px solid var(--border);
+  border-radius: 4px;
+  padding    : 4px 8px;
+  font-size  : 12px;
+  color      : var(--text-1);
+  font-family: inherit;
+  width      : 100%;
+  box-sizing : border-box;
+}
+.edit-input:focus {
+  outline    : none;
+  border-color: var(--accent, #c8956c);
+}
+.edit-name {
+  font-weight: 600;
+  font-size  : 13px;
+}
+.edit-row {
+  display: flex;
+  gap    : 4px;
+}
+.edit-row .edit-input {
+  flex: 1;
+}
+.edit-actions {
+  display: flex;
+  gap    : 6px;
+  margin-top: 2px;
+}
+.edit-save, .edit-cancel {
+  font-size    : 11px;
+  padding      : 3px 10px;
+  border-radius: 4px;
+  border       : none;
+  cursor       : pointer;
+  font-family  : inherit;
+}
+.edit-save {
+  background: var(--accent, #c8956c);
+  color     : white;
+  font-weight: 600;
+}
+.edit-save:hover { opacity: 0.9; }
+.edit-save:disabled { opacity: 0.5; }
+.edit-cancel {
+  background: transparent;
+  color     : var(--text-3);
+  border    : 1px solid var(--border);
+}
+.edit-cancel:hover { color: var(--text-1); }
+
+/* ── Header Actions ────────────────────────────────── */
+.header-actions {
+  display    : flex;
+  align-items: center;
+  gap        : 8px;
+}
+.btn-logout {
+  background : none;
+  border     : 1px solid var(--border);
+  border-radius: 6px;
+  padding    : 6px 8px;
+  cursor     : pointer;
+  color      : var(--text-3);
+  display    : flex;
+  align-items: center;
+  transition : all 0.15s;
+}
+.btn-logout:hover { color: var(--text-1); border-color: var(--text-2); }
+
+/* ── Login Modal ───────────────────────────────────── */
+.login-modal {
+  max-width  : 380px;
+  text-align : center;
+}
+.login-modal h3 {
+  margin     : 0 0 8px;
+  font-size  : 16px;
+  color      : var(--text-1);
+}
+.login-desc {
+  font-size  : 13px;
+  color      : var(--text-3);
+  margin     : 0 0 16px;
+}
+.login-error {
+  font-size  : 12px;
+  color      : #e55;
+  background : #e551;
+  border-radius: 6px;
+  padding    : 8px 12px;
+  margin     : 0 0 12px;
+  word-break : break-all;
+}
+.login-actions {
+  display        : flex;
+  flex-direction : column;
+  gap            : 8px;
+}
+.btn-primary {
+  background    : var(--accent, #c8956c);
+  color         : white;
+  border        : none;
+  border-radius : 8px;
+  padding       : 10px 20px;
+  font-size     : 14px;
+  font-weight   : 600;
+  cursor        : pointer;
+  font-family   : inherit;
+  transition    : opacity 0.15s;
+}
+.btn-primary:hover { opacity: 0.9; }
+.btn-primary:disabled { opacity: 0.5; cursor: default; }
+.btn-secondary {
+  background    : transparent;
+  color         : var(--text-3);
+  border        : 1px solid var(--border);
+  border-radius : 8px;
+  padding       : 8px 16px;
+  font-size     : 13px;
+  cursor        : pointer;
+  font-family   : inherit;
+}
+.btn-secondary:hover { color: var(--text-1); }
+
+/* ── Section Dividers (Originals / Covers) ─────────── */
+.section-divider {
+  display       : flex;
+  align-items   : center;
+  justify-content: space-between;
+  padding       : 14px 20px 6px;
+  border-top    : 1px solid var(--border);
+}
+.section-divider:first-child {
+  border-top: none;
+}
+.section-label {
+  font-size      : 11px;
+  font-weight    : 700;
+  letter-spacing : 0.1em;
+  text-transform : uppercase;
+  color          : var(--accent, #c8956c);
+}
+.section-count {
+  font-size : 10px;
+  color     : var(--text-3);
+}
+
+.playlist-empty {
+  flex       : 1;
+  display    : flex;
+  flex-direction: column;
+  align-items : center;
+  justify-content: center;
+  gap        : 8px;
+  padding    : 32px 24px;
+  text-align : center;
+  color      : var(--text-3);
+}
+.empty-icon  { margin-bottom: 4px; }
+.empty-sub   { font-size: 12px; }
+
+.track-list {
+  flex       : 1;
+  overflow-y : auto;
+  list-style : none;
+  padding    : 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-light) transparent;
+}
+.track-list::-webkit-scrollbar       { width: 4px; }
+.track-list::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+
+.track-item {
+  display     : flex;
+  align-items : center;
+  gap         : 12px;
+  padding     : 10px 20px;
+  cursor      : pointer;
+  border-radius: var(--radius-sm);
+  transition  : background var(--transition);
+  margin      : 2px 8px;
+  position    : relative;
+  touch-action: manipulation;
+}
+@media (hover: hover) { .track-item:hover { background: var(--surface-2); } }
+.track-item.active { background: var(--accent-dim); }
+.track-item.active .track-name { color: var(--accent); }
+
+.track-thumb {
+  width         : 36px;
+  height        : 36px;
+  border-radius : 4px;
+  background    : var(--surface-2);
+  display       : flex;
+  align-items   : center;
+  justify-content: center;
+  flex-shrink   : 0;
+  overflow      : hidden;
+}
+.thumb-img {
+  width      : 100%;
+  height     : 100%;
+  object-fit : cover;
+}
+.idx  { font-size: 12px; color: var(--text-3); }
+
+/* Animated equaliser bars */
+.bars {
+  display    : flex;
+  gap        : 2px;
+  align-items: flex-end;
+  height     : 14px;
+}
+.bars span {
+  width      : 3px;
+  background : var(--accent);
+  border-radius: 2px;
+  animation  : bar 0.9s ease-in-out infinite;
+}
+.bars span:nth-child(1) { animation-delay: 0s;    height: 60%; }
+.bars span:nth-child(2) { animation-delay: 0.3s;  height: 100%;}
+.bars span:nth-child(3) { animation-delay: 0.15s; height: 40%; }
+
+@keyframes bar {
+  0%, 100% { transform: scaleY(0.4); }
+  50%       { transform: scaleY(1);   }
+}
+
+.track-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.track-name {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.track-artist {
+  font-size: 11px;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Drag handle */
+.drag-handle {
+  display       : flex;
+  align-items   : center;
+  justify-content: center;
+  width         : 16px;
+  flex-shrink   : 0;
+  color         : var(--border-light);
+  cursor        : grab;
+  transition    : color var(--transition);
+  touch-action  : none;
+}
+.drag-handle:active { cursor: grabbing; }
+@media (hover: hover) { .track-item:hover .drag-handle { color: var(--text-3); } }
+
+/* Drag states */
+.track-item.dragging {
+  opacity    : 0.4;
+  background : var(--accent-dim);
+}
+.track-item.drop-target {
+  border-top : 2px solid var(--accent);
+  margin-top : 0;
+}
+
+.track-delete {
+  opacity    : 0;
+  background : transparent;
+  border     : none;
+  color      : var(--text-3);
+  cursor     : pointer;
+  padding    : 4px;
+  border-radius: 4px;
+  transition : opacity var(--transition), color var(--transition), background var(--transition);
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+@media (hover: hover) { .track-item:hover .track-delete { opacity: 1; } }
+@media (hover: none) { .track-delete { opacity: 0.5; } }
+.track-delete:hover { color: var(--error-color); background: rgba(229, 83, 83, 0.1); }
+.track-delete.confirm { opacity: 1; color: var(--error-color); background: rgba(229, 83, 83, 0.15); }
+
+/* ── Player ─────────────────────────────────────────────────────────────────── */
+.player {
+  flex           : 1;
+  display        : flex;
+  flex-direction : column;
+  justify-content: center;
+  align-items    : center;
+  gap            : 40px;
+  padding        : 40px;
+  background     : var(--bg);
+  overflow-y     : auto;
+}
+
+.now-playing {
+  display     : flex;
+  align-items : center;
+  gap         : 28px;
+}
+
+.album-art {
+  width         : 180px;
+  height        : 180px;
+  border-radius : 12px;
+  background    : var(--surface-2);
+  border        : 1px solid var(--border);
+  display       : flex;
+  align-items   : center;
+  justify-content: center;
+  flex-shrink   : 0;
+  box-shadow    : 0 8px 40px rgba(0, 0, 0, 0.08);
+  overflow      : hidden;
+}
+.art-image {
+  width      : 100%;
+  height     : 100%;
+  object-fit : cover;
+}
+.art-placeholder {
+  user-select: none;
+  color: var(--text-3);
+}
+.art-spinner {
+  width        : 36px;
+  height       : 36px;
+  border       : 3px solid var(--border-light);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation    : spin 0.8s linear infinite;
+}
+
+.track-info { display: flex; flex-direction: column; gap: 4px; }
+.np-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.np-title {
+  font-size   : 28px;
+  font-weight : 700;
+  letter-spacing: -0.5px;
+  color       : var(--text-1);
+  max-width   : 340px;
+}
+.np-title.idle { color: var(--text-3); font-weight: 400; font-size: 20px; }
+.np-artist {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.np-album {
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+/* Controls */
+.controls-wrap {
+  display        : flex;
+  flex-direction : column;
+  align-items    : center;
+  gap            : 18px;
+  width          : 100%;
+  max-width      : 520px;
+}
+
+.progress-row {
+  display     : flex;
+  align-items : center;
+  gap         : 10px;
+  width       : 100%;
+}
+.time-label { font-size: 11px; color: var(--text-3); width: 32px; text-align: center; flex-shrink: 0; }
+
+.progress-bar,
+.volume-bar {
+  -webkit-appearance: none;
+  appearance  : none;
+  height      : 4px;
+  border-radius: 4px;
+  outline     : none;
+  cursor      : pointer;
+  transition  : height var(--transition);
+}
+.progress-bar { flex: 1; }
+.progress-bar:hover,
+.volume-bar:hover { height: 6px; }
+
+.progress-bar,
+.volume-bar {
+  background: linear-gradient(
+    to right,
+    var(--accent) calc(var(--val, 0) * 100%),
+    var(--surface-3) calc(var(--val, 0) * 100%)
+  );
+}
+
+.progress-bar::-webkit-slider-thumb,
+.volume-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width        : 14px;
+  height       : 14px;
+  border-radius: 50%;
+  background   : var(--accent);
+  box-shadow   : 0 0 6px var(--accent-glow);
+  cursor       : pointer;
+  transition   : transform var(--transition);
+}
+.progress-bar:hover::-webkit-slider-thumb,
+.volume-bar:hover::-webkit-slider-thumb { transform: scale(1.25); }
+
+.transport {
+  display     : flex;
+  align-items : center;
+  gap         : 12px;
+}
+
+.ctrl-btn {
+  background   : var(--surface);
+  border       : 1px solid var(--border);
+  border-radius: 50%;
+  width        : 44px;
+  height       : 44px;
+  display      : flex;
+  align-items  : center;
+  justify-content: center;
+  cursor       : pointer;
+  color        : var(--text-2);
+  transition   : background var(--transition), color var(--transition), box-shadow var(--transition);
+}
+.ctrl-btn svg { width: 18px; height: 18px; }
+.ctrl-btn:hover:not(:disabled) { background: var(--surface-2); color: var(--text-1); }
+.ctrl-btn:disabled { opacity: 0.35; cursor: default; }
+
+.play-btn {
+  width        : 58px;
+  height       : 58px;
+  background   : var(--accent);
+  border-color : transparent;
+  color        : #fff;
+  touch-action : manipulation;
+}
+.play-btn:hover:not(:disabled) {
+  background : var(--accent);
+  box-shadow : 0 0 24px var(--accent-glow);
+  color      : #fff;
+}
+.play-btn svg { width: 24px; height: 24px; }
+
+.btn-spinner {
+  width        : 20px;
+  height       : 20px;
+  border       : 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation    : spin 0.7s linear infinite;
+  display      : inline-block;
+}
+
+.volume-row {
+  display     : flex;
+  align-items : center;
+  gap         : 10px;
+  width       : 160px;
+}
+.vol-icon { width: 18px; height: 18px; color: var(--text-3); flex-shrink: 0; }
+
+/* ── Modal ───────────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position   : fixed;
+  inset      : 0;
+  background : rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  display    : flex;
+  align-items: center;
+  justify-content: center;
+  z-index    : 100;
+  padding    : 24px;
+}
+
+.modal {
+  background    : var(--surface);
+  border        : 1px solid var(--border);
+  border-radius : 16px;
+  width         : 100%;
+  max-width     : 460px;
+  overflow      : hidden;
+  box-shadow    : 0 24px 80px rgba(0,0,0,0.12);
+}
+
+.modal-header {
+  display         : flex;
+  align-items     : center;
+  justify-content : space-between;
+  padding         : 20px 24px 16px;
+  border-bottom   : 1px solid var(--border);
+}
+.modal-header h2 { font-size: 16px; font-weight: 600; }
+.modal-close {
+  background   : transparent;
+  border       : none;
+  color        : var(--text-3);
+  font-size    : 18px;
+  cursor       : pointer;
+  padding      : 2px 6px;
+  border-radius: var(--radius-sm);
+  transition   : color var(--transition);
+}
+.modal-close:hover { color: var(--text-1); }
+
+.drop-zone {
+  margin     : 20px 24px;
+  border     : 2px dashed var(--border-light);
+  border-radius: var(--radius);
+  padding    : 40px 24px;
+  text-align : center;
+  cursor     : pointer;
+  transition : border-color var(--transition), background var(--transition);
+  display    : flex;
+  flex-direction: column;
+  align-items: center;
+  gap        : 6px;
+  margin-bottom: 24px;
+}
+.drop-zone:hover,
+.drop-zone.drag-over {
+  border-color: var(--accent);
+  background  : var(--accent-dim);
+}
+.drop-icon     { color: var(--accent-soft); margin-bottom: 8px; }
+.drop-main     { font-size: 15px; font-weight: 500; color: var(--text-1); }
+.drop-sub      { font-size: 13px; color: var(--text-2); }
+.drop-formats  { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+
+/* Metadata form */
+.metadata-form {
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.form-row label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: 0.02em;
+}
+.optional-tag {
+  font-weight: 400;
+  color: var(--text-3);
+  font-size: 11px;
+}
+.form-row input[type="text"],
+.form-row input[type="number"] {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text-1);
+  outline: none;
+  transition: border-color var(--transition);
+}
+.form-row input:focus {
+  border-color: var(--accent);
+}
+.form-row-half {
+  display: flex;
+  gap: 12px;
+}
+
+.cover-art-picker {
+  width: 120px;
+  height: 120px;
+  border: 2px dashed var(--border-light);
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: border-color var(--transition);
+}
+.cover-art-picker:hover {
+  border-color: var(--accent);
+}
+.cover-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cover-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.btn-secondary {
+  background   : var(--surface-2);
+  color        : var(--text-2);
+  border       : 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding      : 9px 20px;
+  font-size    : 14px;
+  font-weight  : 500;
+  cursor       : pointer;
+  transition   : background var(--transition);
+}
+.btn-secondary:hover { background: var(--surface-3); }
+
+/* Upload progress / done / error */
+.upload-progress,
+.upload-done,
+.upload-error {
+  padding     : 24px;
+  display     : flex;
+  flex-direction: column;
+  align-items : center;
+  gap         : 16px;
+  text-align  : center;
+}
+
+.progress-label { font-size: 13px; color: var(--text-2); }
+.progress-track {
+  width        : 100%;
+  height       : 6px;
+  background   : var(--surface-3);
+  border-radius: 4px;
+  overflow     : hidden;
+}
+.progress-fill {
+  height     : 100%;
+  background : var(--accent);
+  border-radius: 4px;
+  transition : width 0.2s ease;
+}
+.progress-pct { font-size: 22px; font-weight: 700; color: var(--accent); }
+
+.done-icon   { color: var(--success); }
+.error-icon  { color: var(--error-color); }
+
+.btn-primary {
+  background   : var(--accent);
+  color        : #fff;
+  border       : none;
+  border-radius: var(--radius-sm);
+  padding      : 9px 24px;
+  font-size    : 14px;
+  font-weight  : 600;
+  cursor       : pointer;
+  transition   : opacity var(--transition);
+}
+.btn-primary:hover { opacity: 0.85; }
+
+/* ── Full-screen states ───────────────────────────────────────────────────────── */
+.full-loader,
+.full-error {
+  flex           : 1;
+  display        : flex;
+  flex-direction : column;
+  align-items    : center;
+  justify-content: center;
+  gap            : 16px;
+  color          : var(--text-3);
+}
+.loader-ring {
+  width        : 40px;
+  height       : 40px;
+  border       : 3px solid var(--border-light);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation    : spin 0.9s linear infinite;
+}
+
+/* ── Animations ──────────────────────────────────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .app-body    { flex-direction: column; }
+  .playlist {
+    width        : 100%;
+    max-height   : 45dvh;
+    border-right : none;
+    border-bottom: 1px solid var(--border);
+  }
+  .now-playing { flex-direction: column; text-align: center; }
+  .album-art   { width: 120px; height: 120px; }
+  .np-title    { font-size: 20px; }
+  .player      { padding: 20px 16px; gap: 20px; }
+}

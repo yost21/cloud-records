@@ -1,0 +1,22 @@
+canisters:
+  - name: backend
+    build:
+      steps:
+        - type: script
+          commands:
+            - mops install
+            - >
+              /Users/chrisyost/Library/Caches/mops/moc/1.3.0/moc
+              backend/Main.mo
+              --public-metadata candid:service
+              $(mops sources)
+              -o "$ICP_WASM_OUTPUT_PATH"
+
+  - name: frontend
+    recipe:
+      type: "@dfinity/asset-canister@v2.1.0"
+      configuration:
+        dir: frontend/dist
+        build:
+          - npm --prefix frontend install
+          - npm --prefix frontend run build
