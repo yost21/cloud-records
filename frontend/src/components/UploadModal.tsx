@@ -17,29 +17,43 @@ export default function UploadModal({ onClose, onUploaded }: Props) {
   const [isDrag,   setIsDrag]   = useState(false);
 
   const [file,         setFile]         = useState<File | null>(null);
+  const [fileBytes,    setFileBytes]    = useState<Uint8Array | null>(null);
   const [title,        setTitle]        = useState("");
   const [artist,       setArtist]       = useState("");
   const [album,        setAlbum]        = useState("");
   const [trackNumber,  setTrackNumber]  = useState("");
   const [coverArt,     setCoverArt]     = useState<File | null>(null);
+  const [coverBytes,   setCoverBytes]   = useState<Uint8Array | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
-  const handleFile = useCallback((f: File) => {
+  const handleFile = useCallback(async (f: File) => {
     if (!f.type.startsWith("audio/")) {
       setErrorMsg("Please select an audio file (MP3, M4A, WAV, OGG...)");
       setPhase("error");
       return;
     }
-    setFile(f);
-    setTitle(f.name.replace(/\.[^/.]+$/, ""));
-    setPhase("metadata");
+    try {
+      const buf = await f.arrayBuffer();
+      setFileBytes(new Uint8Array(buf));
+      setFile(f);
+      setTitle(f.name.replace(/\.[^/.]+$/, ""));
+      setPhase("metadata");
+    } catch {
+      setErrorMsg("Could not read the file. Try copying it to your Desktop first, then selecting it from there.");
+      setPhase("error");
+    }
   }, []);
 
-  const handleCoverArt = useCallback((f: File) => {
+  const handleCoverArt = useCallback(async (f: File) => {
     if (!f.type.startsWith("image/")) return;
-    setCoverArt(f);
-    const url = URL.createObjectURL(f);
-    setCoverPreview(url);
+    try {
+      const buf = await f.arrayBuffer();
+      setCoverBytes(new Uint8Array(buf));
+      setCoverArt(f);
+      setCoverPreview(URL.createObjectURL(f));
+    } catch {
+      // silently ignore cover art read failures
+    }
   }, []);
 
   const handleUpload = useCallback(async () => {
@@ -56,7 +70,7 @@ export default function UploadModal({ onClose, onUploaded }: Props) {
     };
 
     try {
-      await uploadTrack(file, metadata, p => setProgress(p));
+      await uploadTrack(file, metadata, p => setProgress(p), fileBytes!, coverBytes || undefined);
       setPhase("done");
       onUploaded();
     } catch (err) {

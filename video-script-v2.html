@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloud Records Feature Tour v2 — Script Map</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a0a0c;
+    color: #e8e8e8;
+    line-height: 1.6;
+    padding: 40px 24px 120px;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: #f59c26;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 40px;
+    border-bottom: 1px solid #222;
+    padding-bottom: 20px;
+  }
+  .beat {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 20px;
+    margin-bottom: 32px;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #1a1a1e;
+    background: #111114;
+    transition: all 0.15s;
+  }
+  .beat:hover {
+    border-color: #f59c26;
+    background: #14130f;
+  }
+  .beat.current {
+    border-color: #f59c26;
+    background: #1a1508;
+    box-shadow: 0 0 30px rgba(245, 156, 38, 0.08);
+  }
+  .beat-num {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding-top: 4px;
+  }
+  .beat-number {
+    font-size: 28px;
+    font-weight: 800;
+    color: #f59c26;
+    line-height: 1;
+  }
+  .beat-time {
+    font-size: 11px;
+    color: #666;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .beat-content { display: flex; flex-direction: column; gap: 10px; }
+  .beat-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .beat-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #f59c26;
+    background: rgba(245, 156, 38, 0.1);
+    border: 1px solid rgba(245, 156, 38, 0.25);
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    width: fit-content;
+  }
+  .beat-script {
+    font-size: 15px;
+    color: #ccc;
+    line-height: 1.7;
+  }
+  .beat-script em {
+    color: #f59c26;
+    font-style: normal;
+    font-weight: 600;
+  }
+  .beat-notes {
+    font-size: 12px;
+    color: #666;
+    border-left: 2px solid #333;
+    padding-left: 12px;
+    margin-top: 4px;
+  }
+  .section-break {
+    text-align: center;
+    padding: 24px 0;
+    color: #333;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .section-break span {
+    background: #0a0a0c;
+    padding: 0 16px;
+    position: relative;
+  }
+  .section-break::before {
+    content: '';
+    display: block;
+    height: 1px;
+    background: #222;
+    position: relative;
+    top: 10px;
+  }
+  .checklist {
+    list-style: none;
+    padding: 0;
+  }
+  .checklist li {
+    font-size: 13px;
+    color: #888;
+    padding: 6px 0;
+    border-bottom: 1px solid #1a1a1e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+  .checklist li::before {
+    content: '☐';
+    font-size: 16px;
+    color: #444;
+    flex-shrink: 0;
+  }
+  .checklist li.done::before {
+    content: '☑';
+    color: #f59c26;
+  }
+  .checklist li.done {
+    color: #555;
+    text-decoration: line-through;
+  }
+  .footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid #222;
+    font-size: 12px;
+    color: #444;
+    text-align: center;
+  }
+  /* Click-to-advance */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: #f59c26;
+    transition: width 0.3s ease;
+    z-index: 100;
+  }
+  .controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 8px;
+    z-index: 100;
+  }
+  .controls button {
+    background: #1a1a1e;
+    border: 1px solid #333;
+    color: #ccc;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .controls button:hover {
+    border-color: #f59c26;
+    color: #f59c26;
+  }
+  .controls .active-btn {
+    background: #f59c26;
+    color: #000;
+    border-color: #f59c26;
+  }
+  @media (max-width: 600px) {
+    .beat { grid-template-columns: 50px 1fr; gap: 12px; padding: 14px; }
+    .beat-number { font-size: 22px; }
+    .beat-title { font-size: 16px; }
+    .beat-script { font-size: 14px; }
+    body { padding: 20px 14px 100px; }
+    h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<div class="container">
+
+<h1>☁️ Cloud Records — Feature Tour v2</h1>
+<p class="subtitle">Script Map &bull; ~7 min runtime &bull; Click beats to track progress &bull; Arrow keys to navigate</p>
+
+<!-- PRE-ROLL CHECKLIST -->
+<div class="beat" style="border-color: #333;">
+  <div class="beat-num">
+    <div class="beat-number" style="font-size:18px; color:#666;">✓</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title" style="color:#888;">Pre-Record Checklist</div>
+    <ul class="checklist" id="checklist">
+      <li onclick="this.classList.toggle('done')">Site loaded at kmeho-...icp0.io, hard refreshed</li>
+      <li onclick="this.classList.toggle('done')">Logged OUT of admin (so we can demo the public view first)</li>
+      <li onclick="this.classList.toggle('done')">iPhone ready with Safari open to the site</li>
+      <li onclick="this.classList.toggle('done')">Discord open to Mr. Cloud #general (for digest screenshot)</li>
+      <li onclick="this.classList.toggle('done')">Screen recorder running (desktop + phone)</li>
+      <li onclick="this.classList.toggle('done')">A few tracks with play counts > 0 visible</li>
+      <li onclick="this.classList.toggle('done')">At least 1 featured track starred</li>
+      <li onclick="this.classList.toggle('done')">At least 1 comment to reply to in dashboard</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section-break"><span>RECORDING STARTS</span></div>
+
+<!-- BEAT 1 -->
+<div class="beat" id="beat-1">
+  <div class="beat-num">
+    <div class="beat-number">1</div>
+    <div class="beat-time">0:00</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">Cold Open</div>
+    <div class="beat-action">🖥 Show site with music playing</div>
+    <div class="beat-script">
+      What's up everybody. A lot has changed with Cloud Records since the last video. I've been heads down with Claude Code and we've added a <em>ridiculous</em> amount of functionality. Let me walk you through everything.
+    </div>
+  </div>
+</div>
+
+<!-- BEAT 2 -->
+<div class="beat" id="beat-2">
+  <div class="beat-num">
+    <div class="beat-number">2</div>
+    <div class="beat-time">0:20</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">New Logo</div>
+    <div class="beat-action">👆 Point to header logo</div>
+    <div class="beat-script">
+      First thing — new logo. Cloud with headphones. This is across the whole site now — header, favicon, and when you install the app on your phone, which I'll show you in a second.
+    </div>
+  </div>
+</div>
+
+<!-- BEAT 3 -->
+<div class="beat" id="beat-3">
+  <div class="beat-num">
+    <div class="beat-number">3</div>
+    <div class="beat-time">0:35</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">Search</div>
+    <div class="beat-action">⌨️ Type "floyd" in search bar, then clear</div>
+    <div class="beat-script">
+      Search bar. Type any name, artist, album — <em>instant filter</em>. 37 songs and you don't have to scroll anymore.
+    </div>
+  </div>
+</div>
+
+<!-- BEAT 4 -->
+<div class="beat" id="beat-4">
+  <div class="beat-num">
+    <div class="beat-number">4</div>
+    <div class="beat-time">0:50</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">Featured Tracks</div>
+    <div class="beat-action">👆 Show the Featured section at top of playlist</div>
+    <div class="beat-script">
+      Featured tracks section. As the admin, I can star any track and it floats to the top for everyone. Instant curation.
+    </div>
+  </div>
+</div>
+
+<!-- BEAT 5 -->
+<div class="beat" id="beat-5">
+  <div class="beat-num">
+    <div class="beat-number">5</div>
+    <div class="beat-time">1:05</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">Loading Progress</div>
+    <div class="beat-action">▶️ Click a track — show the progress overlay on album art</div>
+    <div class="beat-script">
+      When a track loads, you see the progress. Downloading chunks from the blockchain in real time. Each chunk is about 1.9 megabytes, reassembled in your browser. Before this, the UI just froze. Now you see exactly what's happening.
+    </div>
+  </div>
+</div>
+
+<!-- BEAT 6 -->
+<div class="beat" id="beat-6">
+  <div class="beat-num">
+    <div class="beat-number">6</div>
+    <div class="beat-time">1:30</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">Queue System ⭐</div>
+    <div class="beat-action">➕ Hit "+" on 3 different tracks, show queue appear</div>
+    <div class="beat-script">
+      This is one of my favorites. We have a queue now. See this plus button? Hit it — adds to queue. Stack up Comfortably Numb, Blackbird, Dreams — they play in that order. When the queue's empty, goes back to normal. You can remove individual tracks or clear the whole thing.
+    </div>
+  </div>
+</div>
+
+<!-- BEAT 7 -->
+<div class="beat" id="beat-7">
+  <div class="beat-num">
+    <div class="beat-number">7</div>
+    <div class="beat-time">2:05</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">Play Counts (Social Proof)</div>
+    <div class="beat-action">👆 Point to "4 plays" labels on tracks</div>
+    <div class="beat-script">
+      Play counts — right there on each track. On-chain data. Every time someone listens, it records on the canister. You can see what's popular.
+    </div>
+  </div>
+</div>
+
+<div class="section-break"><span>SWITCH TO iPHONE</span></div>
+
+<!-- BEAT 8 -->
+<div class="beat" id="beat-8">
+  <div class="beat-num">
+    <div class="beat-number">8</div>
+    <div class="beat-time">2:20</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">PWA Install ⭐</div>
+    <div class="beat-action">📱 Safari → Share → Add to Home Screen → show icon → tap to launch fullscreen</div>
+    <div class="beat-script">
+      Remember in the last video, my mom couldn't add this to her phone? <em>Fixed.</em> Share, Add to Home Screen — look. "Cloud Records" with the branded icon. Tap it — <em>full screen</em>. No Safari address bar. No tabs. Just the music player. Feels like a native app. Still 100% on chain.
+    </div>
+    <div class="beat-notes">If already installed, just show the home screen icon + fullscreen launch. Skip the install flow if it's cleaner.</div>
+  </div>
+</div>
+
+<!-- BEAT 9 -->
+<div class="beat" id="beat-9">
+  <div class="beat-num">
+    <div class="beat-number">9</div>
+    <div class="beat-time">3:05</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">Lock Screen Controls</div>
+    <div class="beat-action">📱 Play a track → lock phone → show Now Playing widget</div>
+    <div class="beat-script">
+      Lock your phone while music is playing. <em>Now Playing widget.</em> Track name, artist, play, pause, skip. Lock screen controls without opening the app. That's the Media Session API.
+    </div>
+  </div>
+</div>
+
+<div class="section-break"><span>BACK TO DESKTOP — ADMIN MODE</span></div>
+
+<!-- BEAT 10 -->
+<div class="beat" id="beat-10">
+  <div class="beat-num">
+    <div class="beat-number">10</div>
+    <div class="beat-time">3:30</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">Admin Login + Dashboard Reveal</div>
+    <div class="beat-action">🖱 Triple-click logo → II login → click dashboard icon</div>
+    <div class="beat-script">
+      Triple-click the logo — Internet Identity login. Now I'm in admin mode. This dashboard icon is new. <em>This is my command center.</em>
+    </div>
+  </div>
+</div>
+
+<!-- BEAT 11 -->
+<div class="beat" id="beat-11">
+  <div class="beat-num">
+    <div class="beat-number">11</div>
+    <div class="beat-time">3:50</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">Dashboard Overview</div>
+    <div class="beat-action">👆 Hover over each stat card</div>
+    <div class="beat-script">
+      Five stat cards: tracks, total plays, <em>unique listeners</em>, comments, guestbook. All live, all on chain. Unique listeners uses a browser fingerprint — so I know how many different people are actually listening, not just total plays.
+    </div>
+  </div>
+</div>
+
+<!-- BEAT 12 -->
+<div class="beat" id="beat-12">
+  <div class="beat-num">
+    <div class="beat-number">12</div>
+    <div class="beat-time">4:15</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">Per-Track Analytics Drill-In</div>
+    <div class="beat-action">🖱 Click a top-played track → show detail modal with activity chart</div>
+    <div class="beat-script">
+      Click any track — per-track analytics. Play count, comments, and this <em>30-day activity chart</em> showing plays per day. This is the Spotify for Artists equivalent, running entirely on the Internet Computer.
+    </div>
+  </div>
+</div>
+
+<!-- BEAT 13 -->
+<div class="beat" id="beat-13">
+  <div class="beat-num">
+    <div class="beat-number">13</div>
+    <div class="beat-time">4:40</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">Tracks Tab — Full Admin Console</div>
+    <div class="beat-action">🖱 Tracks tab → search → star a track → edit one → show delete confirm</div>
+    <div class="beat-script">
+      Tracks tab — every track with play counts. I can search, feature a track with the star, edit metadata with the pencil, or delete. Full admin console, one screen.
+    </div>
+  </div>
+</div>
+
+<!-- BEAT 14 -->
+<div class="beat" id="beat-14">
+  <div class="beat-num">
+    <div class="beat-number">14</div>
+    <div class="beat-time">5:10</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">Comment Replies ⭐</div>
+    <div class="beat-action">🖱 Comments tab → click ↩ on a comment → type reply → send → close dashboard → show it in Player comments</div>
+    <div class="beat-script">
+      Comments tab — every comment across every track. Search, delete. And this — the <em>reply button</em>. Type a response, hit reply. Posts as "Cloud Records," shows up nested under the original on the public site. I can engage with listeners without leaving the dashboard.
+    </div>
+    <div class="beat-notes">Close the dashboard and open the Player comments to show the reply appearing publicly. This is the money shot.</div>
+  </div>
+</div>
+
+<!-- BEAT 15 -->
+<div class="beat" id="beat-15">
+  <div class="beat-num">
+    <div class="beat-number">15</div>
+    <div class="beat-time">5:50</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">Under the Hood</div>
+    <div class="beat-action">📱 Show Discord digest message screenshot</div>
+    <div class="beat-script">
+      Behind the scenes — six automated monitors. Daily digest in Discord: yesterday's plays, new comments, top track, cycle balance. Crypto tip alerts within 5 minutes. Cycle balance monitoring. Weekly and monthly backups. Spam protection — rate limiting, link filtering, storage caps. Browser audio caching so replays are instant. All running while I sleep.
+    </div>
+    <div class="beat-notes">Show the Discord screenshot briefly, don't linger. This is a rapid-fire list, not a deep dive.</div>
+  </div>
+</div>
+
+<!-- BEAT 16 -->
+<div class="beat" id="beat-16">
+  <div class="beat-num">
+    <div class="beat-number">16</div>
+    <div class="beat-time">6:20</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">Keyboard Shortcuts</div>
+    <div class="beat-action">⌨️ Click keyboard icon → show legend modal</div>
+    <div class="beat-script">
+      Small detail — keyboard shortcuts. Space to play/pause, arrows to skip.
+    </div>
+  </div>
+</div>
+
+<div class="section-break"><span>CLOSING</span></div>
+
+<!-- BEAT 17 -->
+<div class="beat" id="beat-17">
+  <div class="beat-num">
+    <div class="beat-number">17</div>
+    <div class="beat-time">6:30</div>
+  </div>
+  <div class="beat-content">
+    <div class="beat-title">Recap + CTA</div>
+    <div class="beat-action">🎵 Let music play underneath</div>
+    <div class="beat-script">
+      So that's Cloud Records v2. Search. Queue. Featured tracks. Play counts. Unique listeners. Analytics dashboard. Comment replies. PWA install. Lock screen controls. Spam protection. Audio caching. Six background monitors. New mascot.
+      <br><br>
+      All built with Claude Code. All on the Internet Computer. <em>No servers. No AWS. No middleman. Every byte on chain.</em>
+      <br><br>
+      Link in the description. Hit shuffle, leave a comment, tell me what you think.
+      <br><br>
+      Coming next: on-chain video playback, custom domain, and an embeddable player.
+      <br><br>
+      Thanks for watching. Peace.
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Cloud Records Feature Tour v2 &bull; Script Map &bull; ~7 min &bull; Arrow keys or click to navigate beats
+</div>
+
+</div><!-- container -->
+
+<div class="controls">
+  <button onclick="prevBeat()">← Prev</button>
+  <button onclick="nextBeat()" class="active-btn">Next →</button>
+</div>
+
+<script>
+  const beats = document.querySelectorAll('.beat[id]');
+  let currentBeat = -1;
+
+  function goToBeat(n) {
+    beats.forEach(b => b.classList.remove('current'));
+    if (n >= 0 && n < beats.length) {
+      currentBeat = n;
+      beats[n].classList.add('current');
+      beats[n].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    updateProgress();
+  }
+
+  function nextBeat() { goToBeat(Math.min(currentBeat + 1, beats.length - 1)); }
+  function prevBeat() { goToBeat(Math.max(currentBeat - 1, 0)); }
+
+  function updateProgress() {
+    const pct = beats.length > 0 ? ((currentBeat + 1) / beats.length) * 100 : 0;
+    document.getElementById('progressBar').style.width = pct + '%';
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); nextBeat(); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prevBeat(); }
+  });
+
+  // Click a beat to jump to it
+  beats.forEach((b, i) => {
+    b.addEventListener('click', () => goToBeat(i));
+  });
+</script>
+</body>
+</html>

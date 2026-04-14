@@ -2,31 +2,54 @@
 
 ## Project Overview
 
-Cloud Records is a fully on-chain music hosting platform built on the Internet Computer Protocol (ICP). Every byte of audio, metadata, and cover art lives in a single canister — no AWS, no CDN, no external dependencies. Built during the 3-day ICP AI Builder Sprint with Claude Code.
+Cloud Records is a fully on-chain music hosting platform built on the Internet Computer Protocol (ICP). Every byte of audio, metadata, cover art, comments, and analytics lives in a single canister — no AWS, no CDN, no external dependencies.
 
-**Live URL:** https://gptw6-kyaaa-aaaas-qe6pq-cai.icp0.io/
-**Backend canister:** `gptw6-kyaaa-aaaas-qe6pq-cai`
+**Live URL:** https://kmeho-ciaaa-aaaae-ageza-cai.icp0.io/
+**Frontend (asset) canister:** `kmeho-ciaaa-aaaae-ageza-cai`
+**Backend canister:** `kfhms-uaaaa-aaaae-ageyq-cai`
 
 ## Stack
 
 - **Backend:** Motoko (Main.mo) — single canister, chunk-based audio storage, Enhanced Orthogonal Persistence
 - **Frontend:** React + TypeScript + Vite — deployed as certified assets via @dfinity/asset-canister
 - **Build:** `icp` CLI (icp.yaml config), `mops` for Motoko packages, `moc` 1.3.0 compiler
-- **Deploy:** `icp build && icp deploy` to mainnet
+- **Deploy:** `icp build && icp deploy -e ic -y` to mainnet
+- **Auth:** Internet Identity for admin login
 
 ## Architecture
 
-### Backend (Main.mo)
-- **Audio storage:** Chunk-based upload/download. Tracks split into chunks on upload, reassembled on playback.
-- **Schema:** Split-storage pattern — `TrackCore` (essential fields) + `TrackExtra` (metadata) maps for upgrade safety
-- **Fields:** title, artist, album, trackNumber, coverArtType, coverArt (separate storage)
-- **Methods:** uploadChunk, listTracks, getChunk, updateTrack, deleteTrack, setCoverArt, getCoverArt
-- **Ordering:** Track display order maintained in canister state
+### Audio Storage
+- Chunk-based: files split into 1.9MB chunks on frontend, stored as Blobs in canister Map
+- Upload: `uploadChunk(trackId, chunkIndex, blob)` → `finalizeTrack()` with metadata
+- Playback: parallel fetch (concurrency 4), reassemble client-side, HTML5 `<audio>` element
+- Cover art stored separately via `setCoverArt(trackId, blob, mimeType)`
+- Browser-side IndexedDB cache (200MB cap, LRU eviction) avoids re-fetching on replay
 
-### Frontend
-- **Components:** App.tsx (root), Playlist.tsx (track list), Player.tsx (audio player), UploadModal.tsx (upload form)
-- **Theme:** Pixel art cloud logo, orange pastel (#f59c26), white background — "Cloud Records" brand
-- **Audio playback:** Fetches chunks from canister, assembles into blob URL, plays via HTML5 audio
+### Backend Data Model (split-storage pattern — NEVER modify existing types)
+- `tracks: Map<Text, TrackCore>` — id, name, mimeType, totalChunks, size, createdAt, order
+- `trackExtras: Map<Text, TrackExtra>` — artist, album, trackNumber, coverArtType
+- `chunks: Map<Text, Blob>` — key: "trackId:chunkIndex"
+- `coverArts: Map<Text, Blob>`
+- `featured: Map<Text, Bool>`
+- `playCounts: Map<Text, Nat>` + `playLog: Map<Text, [Int]>` (rolling 200 timestamps)
+- `uniqueListeners: Map<Text, Bool>` + `uniqueListenersPerTrack: Map<Text, Bool>`
+- `tomatoCounts: Map<Text, Nat>` + `tomatoDedup: Map<Text, Bool>` (clap button)
+- `comments: Map<Text, [Comment]>` + `replies: Map<Text, [Reply]>`
+- `guestbook: [GuestbookEntry]`
+- `admins: Map<Principal, Bool>`
+- Rate limiting maps: `lastPostAt`, `playRateLimit`
+
+### Frontend Key Components
+- `App.tsx` — root, auth state, modals
+- `Playlist.tsx` — sidebar with albums, search, sort, featured, queue, clap
+- `Player.tsx` — transport, waveform, comments, queue display
+- `Dashboard.tsx` — admin analytics (lazy-loaded), stats, tracks, comments, guestbook
+- `TrackDetail.tsx` — per-track drill-in with 30-day activity chart
+- `Waveform.tsx` — Web Audio API canvas visualization
+- `usePlayer.ts` — playback state, queue, media session, preloading
+- `agent.ts` — canister actor, parallel chunk fetch, cache integration
+- `audioCache.ts` — IndexedDB cache
+- `share.ts` — shared shareTrack utility
 
 ## Build & Deploy
 
@@ -36,33 +59,38 @@ npm --prefix frontend install
 mops install
 
 # Local dev
-icp start        # start local replica
-icp deploy       # deploy to local
+icp start && icp deploy
 
 # Mainnet deploy
-icp build
-icp deploy --network ic
+npm --prefix frontend run build
+icp deploy -e ic -y
 ```
 
 ## ICP Development Rules
 
-When modifying this project:
-- **Motoko stable types:** Never change the shape of stable vars in a way that breaks upgrade compatibility. Use the split-storage pattern (separate maps) for adding fields.
-- **Chunk uploads:** Audio is uploaded in chunks (default ~256KB). Frontend splits, backend stores, reassembly on download.
-- **Certified assets:** Frontend is served as certified assets. After changing frontend, run `icp build` to rebuild the dist/ folder.
-- **Canister cycles:** Check cycle balance before large operations. Use `dfx canister status gptw6-kyaaa-aaaas-qe6pq-cai --network ic` to check.
-- **Testing:** Test locally with `icp start && icp deploy` before deploying to mainnet.
+- **Motoko stable types:** NEVER change the shape of existing persistent types. Use the split-storage pattern (new Maps) for adding fields.
+- **Chunk uploads:** 1.9MB chunks (under 2MB canister call limit). Frontend splits, backend stores, parallel fetch on download.
+- **Certified assets:** After frontend changes, `icp build` rebuilds dist/.
+- **Canister cycles:** `dfx canister status kfhms-uaaaa-aaaae-ageyq-cai --network ic` to check.
+- **Testing:** Build check (`npm --prefix frontend run build`) before every deploy.
 
 ## Current State (as of April 2026)
 
-- 9 tracks uploaded to mainnet (15-20MB each — needs optimization to ~1-2MB)
-- Full CRUD: upload, list, play, edit metadata, delete, cover art
-- Mobile responsive (fixed in Day 2 sprint)
-- Rebranded from "Sonic" to "Cloud Records"
+- 37 tracks uploaded, optimized MP3s, ~470MB total on-chain storage
+- Full CRUD: upload, list, play, edit metadata, delete, cover art, featured toggle
+- Comments with admin replies, guestbook, spam protection (rate limiting + link filtering + storage caps)
+- Admin dashboard with play counts, unique listeners, per-track analytics, 30-day activity charts
+- Queue system, search, sort, waveform visualization, Media Session API (lock screen controls)
+- PWA manifest (Add to Home Screen with branded icon)
+- Browser audio cache (IndexedDB), parallel chunk fetching, next-track preloading
+- Logo: orange cloud + premium headphones + gold infinity symbol (DFINITY nod)
+- 6 automated LaunchAgents: crypto tips, Stripe tips, cycle balance, daily digest, weekly backup, monthly backup
+- All monitoring posts to Mr. Cloud Discord via webhook
 
 ## Design Principles
 
-- Bold, specific aesthetic — pixel art cloud logo, orange/white theme
-- Distinctive fonts, not generic defaults
-- Purposeful animations and micro-interactions
-- Match code complexity to aesthetic vision
+- Bold, distinctive — NOT Inter, Roboto, Arial, or generic system fonts
+- Orange accent (#f59c26), white background, cream surfaces
+- CSS variables for cohesive color system
+- Purposeful animations, no generic AI aesthetics
+- Every track must have cover art (generate if none provided)

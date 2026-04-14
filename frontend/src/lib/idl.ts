@@ -15,6 +15,28 @@ export const idlFactory: IDL.InterfaceFactory = ({ IDL }) => {
     createdAt    : IDL.Int,
     order        : IDL.Nat,
     coverArtType : IDL.Text,
+    featured     : IDL.Bool,
+  });
+
+  const Comment = IDL.Record({
+    id        : IDL.Text,
+    author    : IDL.Text,
+    text      : IDL.Text,
+    createdAt : IDL.Int,
+  });
+
+  const Reply = IDL.Record({
+    id        : IDL.Text,
+    author    : IDL.Text,
+    text      : IDL.Text,
+    createdAt : IDL.Int,
+  });
+
+  const GuestbookEntry = IDL.Record({
+    id        : IDL.Text,
+    author    : IDL.Text,
+    text      : IDL.Text,
+    createdAt : IDL.Int,
   });
 
   return IDL.Service({
@@ -29,11 +51,51 @@ export const idlFactory: IDL.InterfaceFactory = ({ IDL }) => {
     updateTrack   : IDL.Func([IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat], [], []),
     deleteTrack   : IDL.Func([IDL.Text], [], []),
     setOrder      : IDL.Func([IDL.Text, IDL.Nat], [], []),
+    setFeatured   : IDL.Func([IDL.Text, IDL.Bool], [], []),
+    listFeatured  : IDL.Func([], [IDL.Vec(IDL.Text)], ["query"]),
+    recordPlay    : IDL.Func([IDL.Text, IDL.Text], [], []),
+    throwTomato   : IDL.Func([IDL.Text, IDL.Text], [], []),
+    getAllTomatoCounts : IDL.Func([], [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat))], ["query"]),
+    getPlayCount  : IDL.Func([IDL.Text], [IDL.Nat], ["query"]),
+    getPlayLog    : IDL.Func([IDL.Text], [IDL.Vec(IDL.Int)], ["query"]),
+    getAllPlayCounts : IDL.Func([], [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat))], ["query"]),
+    getStats      : IDL.Func([], [IDL.Record({
+      totalTracks    : IDL.Nat,
+      totalPlays     : IDL.Nat,
+      totalComments  : IDL.Nat,
+      totalGuestbook : IDL.Nat,
+      uniqueListeners: IDL.Nat,
+      topPlayed      : IDL.Vec(IDL.Record({
+        trackId : IDL.Text,
+        name    : IDL.Text,
+        artist  : IDL.Text,
+        plays   : IDL.Nat,
+      })),
+    })], ["query"]),
+    getAllComments : IDL.Func([], [IDL.Vec(IDL.Record({
+      trackId   : IDL.Text,
+      trackName : IDL.Text,
+      id        : IDL.Text,
+      author    : IDL.Text,
+      text      : IDL.Text,
+      createdAt : IDL.Int,
+    }))], ["query"]),
     // Admin
     addAdmin          : IDL.Func([IDL.Principal], [], []),
     removeAdmin       : IDL.Func([IDL.Principal], [], []),
     listAdmins        : IDL.Func([], [IDL.Vec(IDL.Principal)], ["query"]),
     isCallerAdmin     : IDL.Func([IDL.Principal], [IDL.Bool], ["query"]),
+    // Comments
+    addComment        : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+    getComments       : IDL.Func([IDL.Text], [IDL.Vec(Comment)], ["query"]),
+    deleteComment     : IDL.Func([IDL.Text, IDL.Text], [], []),
+    replyToComment    : IDL.Func([IDL.Text, IDL.Text], [], []),
+    getReplies        : IDL.Func([IDL.Text], [IDL.Vec(Reply)], ["query"]),
+    getAllReplies      : IDL.Func([], [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Vec(Reply)))], ["query"]),
+    // Guestbook
+    addGuestbookEntry : IDL.Func([IDL.Text, IDL.Text], [], []),
+    getGuestbook      : IDL.Func([], [IDL.Vec(GuestbookEntry)], ["query"]),
+    deleteGuestbookEntry : IDL.Func([IDL.Text], [], []),
     // Queries
     getTrack          : IDL.Func([IDL.Text], [IDL.Opt(TrackInfo)], ["query"]),
     listTracks        : IDL.Func([], [IDL.Vec(TrackInfo)],         ["query"]),

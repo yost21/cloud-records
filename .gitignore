@@ -23,3 +23,8 @@ upload*.mjs
 .npmrc
 friction-log.html
 .claude/
+backups/
+instagram-rips/
+remotion/
+video-assets/
+logo/
