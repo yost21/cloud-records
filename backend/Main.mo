@@ -42,6 +42,14 @@ persistent actor MusicPlatform {
 
   public shared(msg) func removeAdmin(principal : Principal) : async () {
     requireAdmin(msg.caller);
+    // Last-admin removal would re-open the addAdmin bootstrap path
+    // and let any subsequent caller claim the canister.
+    if (Map.size(admins) == 1) {
+      switch (Map.get(admins, Principal.compare, principal)) {
+        case (?_) Runtime.trap("Cannot remove the last admin");
+        case null {};
+      };
+    };
     ignore Map.delete(admins, Principal.compare, principal);
   };
 
@@ -303,7 +311,8 @@ persistent actor MusicPlatform {
 
   // ── Reorder API ─────────────────────────────────────────────────────────────
 
-  public func setOrder(trackId : Text, newOrder : Nat) : async () {
+  public shared(msg) func setOrder(trackId : Text, newOrder : Nat) : async () {
+    requireAdmin(msg.caller);
     switch (Map.get(tracks, Text.compare, trackId)) {
       case (?existing) {
         let oldOrder = existing.order;

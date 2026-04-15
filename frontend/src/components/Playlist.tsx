@@ -230,7 +230,7 @@ export default function Playlist({ tracks, currentIndex, isPlaying, isAdmin, onS
         key={track.id}
         className={`track-item${active ? " active" : ""}${isDragging ? " dragging" : ""}${isDropTarget ? " drop-target" : ""}`}
         onClick={() => onSelect(globalIndex)}
-        draggable
+        draggable={isAdmin}
         onDragStart={(e) => handleDragStart(e, globalIndex)}
         onDragEnd={handleDragEnd}
         onDragEnter={(e) => handleDragEnter(e, globalIndex)}
@@ -238,13 +238,15 @@ export default function Playlist({ tracks, currentIndex, isPlaying, isAdmin, onS
         onDragOver={handleDragOver}
         onDrop={(e) => handleDrop(e, globalIndex)}
       >
-        <div className="drag-handle" onMouseDown={(e) => e.stopPropagation()}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-            <circle cx="3.5" cy="2" r="1.2"/><circle cx="8.5" cy="2" r="1.2"/>
-            <circle cx="3.5" cy="6" r="1.2"/><circle cx="8.5" cy="6" r="1.2"/>
-            <circle cx="3.5" cy="10" r="1.2"/><circle cx="8.5" cy="10" r="1.2"/>
-          </svg>
-        </div>
+        {isAdmin && (
+          <div className="drag-handle" onMouseDown={(e) => e.stopPropagation()}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+              <circle cx="3.5" cy="2" r="1.2"/><circle cx="8.5" cy="2" r="1.2"/>
+              <circle cx="3.5" cy="6" r="1.2"/><circle cx="8.5" cy="6" r="1.2"/>
+              <circle cx="3.5" cy="10" r="1.2"/><circle cx="8.5" cy="10" r="1.2"/>
+            </svg>
+          </div>
+        )}
         <div className="track-thumb">
           {artUrl ? (
             <img src={artUrl} alt="" className="thumb-img" />
@@ -350,7 +352,7 @@ export default function Playlist({ tracks, currentIndex, isPlaying, isAdmin, onS
       <div
         key={group.album}
         className={`album-group${isActiveAlbum ? " active-album" : ""}${isDraggingAlbum ? " album-dragging" : ""}${isAlbumDropTarget ? " album-drop-target" : ""}`}
-        draggable
+        draggable={isAdmin}
         onDragStart={(e) => {
           e.stopPropagation();
           setAlbumDragIndex(listIndex);
@@ -383,13 +385,15 @@ export default function Playlist({ tracks, currentIndex, isPlaying, isAdmin, onS
         }}
       >
         <div className="album-header" onClick={() => toggleAlbum(group.album)}>
-          <div className="album-drag-handle">
-            <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor" opacity="0.3">
-              <circle cx="3.5" cy="2" r="1.2"/><circle cx="8.5" cy="2" r="1.2"/>
-              <circle cx="3.5" cy="6" r="1.2"/><circle cx="8.5" cy="6" r="1.2"/>
-              <circle cx="3.5" cy="10" r="1.2"/><circle cx="8.5" cy="10" r="1.2"/>
-            </svg>
-          </div>
+          {isAdmin && (
+            <div className="album-drag-handle">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor" opacity="0.3">
+                <circle cx="3.5" cy="2" r="1.2"/><circle cx="8.5" cy="2" r="1.2"/>
+                <circle cx="3.5" cy="6" r="1.2"/><circle cx="8.5" cy="6" r="1.2"/>
+                <circle cx="3.5" cy="10" r="1.2"/><circle cx="8.5" cy="10" r="1.2"/>
+              </svg>
+            </div>
+          )}
           <div className="album-art-small">
             {albumArt ? (
               <img src={albumArt} alt="" />
