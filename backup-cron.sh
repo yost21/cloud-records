@@ -3,6 +3,9 @@
 # Usage: backup-cron.sh [metadata|full]
 # - metadata: quick metadata-only backup (KB-scale), keeps last 4
 # - full: complete audio + cover backup (~100MB), keeps last 12
+#
+# Restore: see /Users/chrisyost/music-platform/RESTORE.md and restore.mjs.
+# Dry-run any backup with:  node restore.mjs <backup-dir> --dry-run
 
 set -e
 

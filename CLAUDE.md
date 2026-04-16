@@ -69,6 +69,8 @@ icp deploy -e ic -y
 ## ICP Development Rules
 
 - **Motoko stable types:** NEVER change the shape of existing persistent types. Use the split-storage pattern (new Maps) for adding fields.
+- **EOP field-drop discipline:** Never drop an existing persistent field during the same upgrade that adds new fields. Specifically: `lastPlayAt : Map<Principal, Int>` at `backend/Main.mo:120` is dead code retained for EOP compatibility — do NOT remove it during the Phase 1 video upgrade. Removal, if ever, must be its own isolated upgrade tested against a restored staging canister first. Additive schema changes (new maps, new types, new fields on existing records) are safe under `persistent actor` + `dfx canister install --mode upgrade --wasm-memory-persistence keep`.
+- **EOP upgrade flag is mandatory:** Never run `dfx canister install` on a `persistent actor` production canister without `--wasm-memory-persistence keep`. The upgrade will trap with `IC0504`/`IC0522` under EOP.
 - **Chunk uploads:** 1.9MB chunks (under 2MB canister call limit). Frontend splits, backend stores, parallel fetch on download.
 - **Certified assets:** After frontend changes, `icp build` rebuilds dist/.
 - **Canister cycles:** `dfx canister status kfhms-uaaaa-aaaae-ageyq-cai --network ic` to check.

@@ -19,11 +19,28 @@
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url + '/../frontend/');
 const { Actor, HttpAgent } = require('@dfinity/agent');
-import { mkdirSync, writeFileSync, existsSync } from 'fs';
+const { Secp256k1KeyIdentity } = require('@dfinity/identity-secp256k1');
+import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'fs';
+import { homedir } from 'os';
 import { join, resolve } from 'path';
 
 const CANISTER_ID = 'kfhms-uaaaa-aaaae-ageyq-cai';
 const METADATA_ONLY = process.argv.includes('--metadata');
+const ADMIN_PEM_PATH = join(homedir(), '.config/dfx/identity/chriscloud-admin/identity.pem');
+
+// Load the chriscloud-admin identity if its plaintext PEM exists on disk.
+// Needed for admin-gated queries like `getAllReplies`. Falls back to anonymous
+// for running on machines without the PEM — the backup is still mostly useful,
+// it just misses admin-gated state.
+function loadAdminIdentityOrAnonymous() {
+  try {
+    const pem = readFileSync(ADMIN_PEM_PATH, 'utf8');
+    const identity = Secp256k1KeyIdentity.fromPem(pem);
+    return { identity, principal: identity.getPrincipal().toText() };
+  } catch (e) {
+    return { identity: undefined, principal: '<anonymous>' };
+  }
+}
 
 const idlFactory = ({ IDL }) => {
   const TrackInfo = IDL.Record({
@@ -35,16 +52,24 @@ const idlFactory = ({ IDL }) => {
   const Comment = IDL.Record({
     id: IDL.Text, author: IDL.Text, text: IDL.Text, createdAt: IDL.Int,
   });
+  const Reply = IDL.Record({
+    id: IDL.Text, author: IDL.Text, text: IDL.Text, createdAt: IDL.Int,
+  });
   const GuestbookEntry = IDL.Record({
     id: IDL.Text, author: IDL.Text, text: IDL.Text, createdAt: IDL.Int,
   });
   return IDL.Service({
-    listTracks   : IDL.Func([], [IDL.Vec(TrackInfo)], ['query']),
-    getChunk     : IDL.Func([IDL.Text, IDL.Nat], [IDL.Opt(IDL.Vec(IDL.Nat8))], ['query']),
-    getCoverArt  : IDL.Func([IDL.Text], [IDL.Opt(IDL.Vec(IDL.Nat8))], ['query']),
-    getComments  : IDL.Func([IDL.Text], [IDL.Vec(Comment)], ['query']),
-    getGuestbook : IDL.Func([], [IDL.Vec(GuestbookEntry)], ['query']),
-    listAdmins   : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
+    listTracks        : IDL.Func([], [IDL.Vec(TrackInfo)], ['query']),
+    getChunk          : IDL.Func([IDL.Text, IDL.Nat], [IDL.Opt(IDL.Vec(IDL.Nat8))], ['query']),
+    getCoverArt       : IDL.Func([IDL.Text], [IDL.Opt(IDL.Vec(IDL.Nat8))], ['query']),
+    getComments       : IDL.Func([IDL.Text], [IDL.Vec(Comment)], ['query']),
+    getGuestbook      : IDL.Func([], [IDL.Vec(GuestbookEntry)], ['query']),
+    listAdmins        : IDL.Func([], [IDL.Vec(IDL.Principal)], ['query']),
+    // W1.2 additions: state tables the original backup missed.
+    getAllReplies     : IDL.Func([], [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Vec(Reply)))], ['query']),
+    getAllPlayCounts  : IDL.Func([], [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat))], ['query']),
+    getAllTomatoCounts: IDL.Func([], [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat))], ['query']),
+    listFeatured      : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
   });
 };
 
@@ -84,10 +109,12 @@ async function fetchAllChunks(actor, track) {
 }
 
 async function main() {
-  const agent = await HttpAgent.create({ host: 'https://icp-api.io' });
+  const { identity, principal } = loadAdminIdentityOrAnonymous();
+  const agent = await HttpAgent.create({ host: 'https://icp-api.io', identity });
   const actor = Actor.createActor(idlFactory, { agent, canisterId: CANISTER_ID });
 
   console.log('Connected to canister:', CANISTER_ID);
+  console.log('Identity:', principal);
   console.log('Mode:', METADATA_ONLY ? 'metadata only' : 'full backup (audio + cover art)');
 
   const date = new Date().toISOString().slice(0, 10);
@@ -99,10 +126,14 @@ async function main() {
   mkdirSync(join(outDir, 'covers'), { recursive: true });
 
   console.log('\nFetching metadata...');
-  const tracks    = await actor.listTracks();
-  const guestbook = await actor.getGuestbook();
-  const admins    = await actor.listAdmins();
+  const tracks       = await actor.listTracks();
+  const guestbook    = await actor.getGuestbook();
+  const admins       = await actor.listAdmins();
+  const featuredIds  = await actor.listFeatured();
+  const playCounts   = await actor.getAllPlayCounts();
+  const tomatoCounts = await actor.getAllTomatoCounts();
   console.log(`  ${tracks.length} tracks, ${guestbook.length} guestbook entries, ${admins.length} admins`);
+  console.log(`  ${featuredIds.length} featured, ${playCounts.length} play-count rows, ${tomatoCounts.length} tomato-count rows`);
 
   // Comments per track
   console.log('\nFetching comments...');
@@ -114,19 +145,43 @@ async function main() {
   const commentTotal = Object.values(comments).reduce((n, arr) => n + arr.length, 0);
   console.log(`  ${commentTotal} comments across ${Object.keys(comments).length} tracks`);
 
+  // Replies — admin-gated bulk query returns [(commentId, [Reply]), ...]
+  console.log('\nFetching replies...');
+  let replies = {};
+  try {
+    const replyPairs = await actor.getAllReplies();
+    for (const [commentId, arr] of replyPairs) {
+      if (arr.length > 0) replies[commentId] = arr;
+    }
+    const replyTotal = Object.values(replies).reduce((n, arr) => n + arr.length, 0);
+    console.log(`  ${replyTotal} replies across ${Object.keys(replies).length} comments`);
+  } catch (e) {
+    console.log(`  getAllReplies failed (admin-gated, caller may not be admin): ${e.message?.slice(0, 80)}`);
+    console.log(`  Proceeding without replies. Run with an admin identity to capture them.`);
+    replies = {};
+  }
+
   const manifest = {
     backedUpAt : new Date().toISOString(),
     canisterId : CANISTER_ID,
     counts     : {
-      tracks    : tracks.length,
-      comments  : commentTotal,
-      guestbook : guestbook.length,
-      admins    : admins.length,
+      tracks       : tracks.length,
+      comments     : commentTotal,
+      replies      : Object.values(replies).reduce((n, arr) => n + arr.length, 0),
+      guestbook    : guestbook.length,
+      admins       : admins.length,
+      featured     : featuredIds.length,
+      playCounts   : playCounts.length,
+      tomatoCounts : tomatoCounts.length,
     },
     tracks,
     comments,
+    replies,
     guestbook,
     admins: admins.map(p => p.toString()),
+    featured: featuredIds,
+    playCounts,
+    tomatoCounts,
   };
 
   writeFileSync(

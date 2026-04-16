@@ -2,6 +2,7 @@ node_modules/
 .dfx/
 .icp/
 .mops/
+__pycache__/
 dist/
 frontend/dist/
 frontend/node_modules/
