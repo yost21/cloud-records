@@ -40,7 +40,7 @@ export default function App() {
     return isMobile && !isStandalone && !dismissed;
   });
 
-  const { state, play, togglePlay, skipNext, skipPrev, seek, setVolume, toggleShuffle, cycleRepeat, playNext, addToQueue, removeFromQueue, clearQueue, currentTrack, currentAudioUrl } =
+  const { state, play, selectTrack, togglePlay, skipNext, skipPrev, seek, setVolume, toggleShuffle, cycleRepeat, playNext, addToQueue, removeFromQueue, clearQueue, currentTrack, currentAudioUrl } =
     usePlayer(tracks);
 
   const fetchTracks = useCallback(async () => {
@@ -63,8 +63,11 @@ export default function App() {
 
   useEffect(() => { fetchTracks(); }, [fetchTracks]);
 
-  // Deep link: ?track=TRACK_ID → auto-play that track on load
-  // Default (no deep link): pre-select "Comfortably Numb"
+  // Deep link: ?track=TRACK_ID → pre-select that track on load (no autoplay).
+  // Default (no deep link): pre-select "Comfortably Numb".
+  // We use selectTrack (not play) because mobile browsers block autoplay on
+  // mount — calling play() here would silently fail and poison the audio
+  // element's unlock state, breaking subsequent real user clicks.
   const deepLinkHandled = useRef(false);
   useEffect(() => {
     if (deepLinkHandled.current || tracks.length === 0) return;
@@ -74,15 +77,15 @@ export default function App() {
       deepLinkHandled.current = true;
       const idx = tracks.findIndex(t => t.id === trackId);
       if (idx >= 0) {
-        play(idx);
+        selectTrack(idx);
         window.history.replaceState({}, "", window.location.pathname);
       }
     } else {
       deepLinkHandled.current = true;
       const idx = tracks.findIndex(t => t.name.toLowerCase().includes("comfortably numb"));
-      if (idx >= 0) play(idx);
+      if (idx >= 0) selectTrack(idx);
     }
-  }, [tracks, play]);
+  }, [tracks, selectTrack]);
 
   // Keyboard shortcuts: Space=play/pause, Arrows=skip
   useEffect(() => {

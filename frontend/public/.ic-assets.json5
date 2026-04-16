@@ -1,0 +1,21 @@
+[
+  {
+    // Default: short cache, must revalidate. Applies to index.html and any
+    // file without an explicit override below. Without this, mobile browsers
+    // were aggressively caching index.html with no Cache-Control header,
+    // pinning users to whatever JS bundle hash was live when they first
+    // visited — even after we deployed fixes.
+    "match": "**/*",
+    "headers": {
+      "Cache-Control": "public, max-age=0, must-revalidate"
+    }
+  },
+  {
+    // Hashed JS/CSS bundles in assets/ are content-addressed (filename
+    // changes on every build), so they're safe to cache forever.
+    "match": "assets/**/*",
+    "headers": {
+      "Cache-Control": "public, max-age=31536000, immutable"
+    }
+  }
+]

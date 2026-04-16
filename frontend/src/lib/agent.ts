@@ -339,28 +339,59 @@ export async function buildAudioUrl(
   const parts: (Uint8Array | null)[] = new Array(totalChunks).fill(null);
   let loaded = 0;
 
-  for (let start = 0; start < totalChunks; start += CONCURRENCY) {
-    const batch = Array.from(
-      { length: Math.min(CONCURRENCY, totalChunks - start) },
-      (_, j) => {
-        const idx = start + j;
-        return actor.getChunk(trackId, BigInt(idx)).then(result => {
-          if (result.length > 0) {
-            parts[idx] = new Uint8Array(result[0] as Uint8Array);
-          }
-          loaded++;
-          onProgress?.({ loaded, total: totalChunks });
-        });
+  // Fetch a single chunk with retries. Mobile networks drop calls; the old
+  // code silently skipped failed chunks, which corrupted the audio file and
+  // broke duration/seek mapping (playback struggled, playhead landed on
+  // wrong positions). Now we retry, and if a chunk truly can't be fetched
+  // we throw so the UI can report the failure instead of producing garbage.
+  const fetchChunk = async (idx: number): Promise<Uint8Array> => {
+    const MAX_ATTEMPTS = 4;
+    let lastError: unknown;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      try {
+        const result = await actor.getChunk(trackId, BigInt(idx));
+        if (result.length === 0) {
+          throw new Error(`Chunk ${idx} missing on canister`);
+        }
+        return new Uint8Array(result[0] as Uint8Array);
+      } catch (err) {
+        lastError = err;
+        if (attempt < MAX_ATTEMPTS - 1) {
+          await new Promise(r => setTimeout(r, 200 * Math.pow(2, attempt)));
+        }
       }
-    );
+    }
+    throw lastError instanceof Error
+      ? lastError
+      : new Error(`Failed to fetch chunk ${idx}`);
+  };
+
+  for (let start = 0; start < totalChunks; start += CONCURRENCY) {
+    const batch: Promise<void>[] = [];
+    for (let j = 0; j < Math.min(CONCURRENCY, totalChunks - start); j++) {
+      const idx = start + j;
+      batch.push(fetchChunk(idx).then(bytes => {
+        parts[idx] = bytes;
+        loaded++;
+        onProgress?.({ loaded, total: totalChunks });
+      }));
+    }
     await Promise.all(batch);
   }
 
-  const validParts = parts.filter((p): p is Uint8Array => p !== null);
-  const totalLen = validParts.reduce((acc, p) => acc + p.length, 0);
+  // Integrity check — never assemble a partial file. Wrong order or missing
+  // chunks would produce playable-but-corrupt audio with broken seeking.
+  for (let i = 0; i < totalChunks; i++) {
+    if (parts[i] === null) {
+      throw new Error(`Chunk ${i} missing after fetch; refusing to assemble corrupted audio`);
+    }
+  }
+
+  const totalLen = parts.reduce((acc, p) => acc + (p ? p.length : 0), 0);
   const merged = new Uint8Array(totalLen);
   let offset = 0;
-  for (const part of validParts) {
+  for (const part of parts) {
+    if (!part) continue;
     merged.set(part, offset);
     offset += part.length;
   }
