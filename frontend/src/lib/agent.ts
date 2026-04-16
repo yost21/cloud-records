@@ -401,3 +401,32 @@ export async function buildAudioUrl(
   putCached(trackId, blob, mimeType).catch(() => {});
   return URL.createObjectURL(blob);
 }
+
+// ── Video queries (W5) ──────────────────────────────────────────────────────
+// The frontend only READS video metadata; uploads happen via the admin Node
+// script (upload-video.mjs). VideoInfo.variants arrives as an array of
+// (resolution, variant) tuples — see types.ts VideoInfo.
+
+import type { VideoInfo } from "./types";
+
+export async function getVideosByTrack(trackId: string): Promise<VideoInfo[]> {
+  const actor = await getActor();
+  return actor.getVideosByTrack(trackId);
+}
+
+export async function getVideo(videoId: string): Promise<VideoInfo | null> {
+  const actor = await getActor();
+  const result = await actor.getVideo(videoId);
+  if (result.length === 0) return null;
+  const first: VideoInfo = result[0] as VideoInfo;
+  return first;
+}
+
+// Returns the raw-domain URL for streaming a single variant. Note: this
+// URL is served by the backend canister directly (not the frontend asset
+// canister), and always routes through `.raw.icp0.io` in Phase 1. See
+// `lib/video.ts` for picker logic that chooses which variant to load.
+export function getVideoStreamUrl(videoId: string, resolution: string): string {
+  const backendId = getBackendCanisterId();
+  return `https://${backendId}.raw.icp0.io/video/${videoId}/${resolution}`;
+}

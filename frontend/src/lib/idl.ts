@@ -39,6 +39,27 @@ export const idlFactory: IDL.InterfaceFactory = ({ IDL }) => {
     createdAt : IDL.Int,
   });
 
+  // Video types — mirror backend/Main.mo W2 additions.
+  const StorageLocation = IDL.Variant({
+    onChain  : IDL.Null,
+    offChain : IDL.Record({ url: IDL.Text, provider: IDL.Text }),
+  });
+  const VideoVariant = IDL.Record({
+    resolution      : IDL.Text,
+    size            : IDL.Nat,
+    totalChunks     : IDL.Nat,
+    chunkSize       : IDL.Nat,
+    mimeType        : IDL.Text,
+    storageLocation : StorageLocation,
+  });
+  const VideoInfo = IDL.Record({
+    id          : IDL.Text,
+    trackId     : IDL.Text,
+    durationSec : IDL.Nat,
+    variants    : IDL.Vec(IDL.Tuple(IDL.Text, VideoVariant)),
+    createdAt   : IDL.Int,
+  });
+
   return IDL.Service({
     // Updates
     uploadChunk   : IDL.Func([IDL.Text, IDL.Nat, IDL.Vec(IDL.Nat8)], [], []),
@@ -102,5 +123,10 @@ export const idlFactory: IDL.InterfaceFactory = ({ IDL }) => {
     getCoverArt       : IDL.Func([IDL.Text], [IDL.Opt(IDL.Vec(IDL.Nat8))], ["query"]),
     getChunk          : IDL.Func([IDL.Text, IDL.Nat], [IDL.Opt(IDL.Vec(IDL.Nat8))], ["query"]),
     trackCountQuery   : IDL.Func([], [IDL.Nat],                    ["query"]),
+    // Video queries (W5)
+    listVideos             : IDL.Func([], [IDL.Vec(VideoInfo)],                   ["query"]),
+    getVideo               : IDL.Func([IDL.Text], [IDL.Opt(VideoInfo)],           ["query"]),
+    getVideosByTrack       : IDL.Func([IDL.Text], [IDL.Vec(VideoInfo)],           ["query"]),
+    getVideoUploadProgress : IDL.Func([IDL.Text, IDL.Text], [IDL.Vec(IDL.Nat)],   ["query"]),
   });
 };

@@ -61,6 +61,33 @@ export interface CommentWithContext {
   createdAt : bigint;
 }
 
+// ── Video types (W5) ────────────────────────────────────────────────────
+// Mirror of the Motoko VideoCore + VideoVariant + StorageLocation records.
+// `variants` is serialized as an array of (resolution, variant) tuples
+// because Candid doesn't project Map.Map directly — see backend/Main.mo
+// `projectVideo` helper.
+
+export type StorageLocation =
+  | { onChain : null }
+  | { offChain : { url : string; provider : string } };
+
+export interface VideoVariant {
+  resolution      : string;       // "480p" | "720p" | "1080p"
+  size            : bigint;
+  totalChunks     : bigint;
+  chunkSize       : bigint;
+  mimeType        : string;
+  storageLocation : StorageLocation;
+}
+
+export interface VideoInfo {
+  id          : string;            // "v-<trackId>"
+  trackId     : string;
+  durationSec : bigint;
+  variants    : Array<[string, VideoVariant]>;
+  createdAt   : bigint;
+}
+
 // Typed actor interface matching the IDL factory in idl.ts
 export interface BackendActor {
   uploadChunk(
@@ -130,4 +157,11 @@ export interface BackendActor {
   getCoverArt(trackId : string): Promise<[Uint8Array] | []>;
   getChunk(trackId : string, chunkIndex : bigint): Promise<[Uint8Array] | []>;
   trackCountQuery(): Promise<bigint>;
+
+  // Video queries (W5) — reads only; upload methods are called from the
+  // admin Node script (upload-video.mjs) and intentionally not exposed here.
+  listVideos(): Promise<VideoInfo[]>;
+  getVideo(videoId : string): Promise<[VideoInfo] | []>;
+  getVideosByTrack(trackId : string): Promise<VideoInfo[]>;
+  getVideoUploadProgress(videoId : string, resolution : string): Promise<bigint[]>;
 }

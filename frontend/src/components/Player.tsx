@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import type { TrackInfo } from "../lib/types";
+import type { TrackInfo, VideoInfo } from "../lib/types";
 import type { Comment, Reply } from "../lib/types";
 import type { PlayerState } from "../hooks/usePlayer";
-import { getCoverArtUrl, getComments, addComment, deleteCommentApi, getReplies } from "../lib/agent";
+import { getCoverArtUrl, getComments, addComment, deleteCommentApi, getReplies, getVideosByTrack } from "../lib/agent";
 import { shareTrack } from "../lib/share";
 import Waveform from "./Waveform";
+import VideoPlayer from "./VideoPlayer";
 
 interface Props {
   track       : TrackInfo | null;
@@ -58,6 +59,24 @@ export default function Player({
   const [commentAuthor, setCommentAuthor] = useState(() => localStorage.getItem("cr-name") || "");
   const [commentText, setCommentText] = useState("");
   const [posting, setPosting] = useState(false);
+
+  // Video — Phase 1 is 1:1 with audio, so we take the first returned video.
+  const [video, setVideo] = useState<VideoInfo | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setVideo(null);
+    if (!track?.id) return;
+    getVideosByTrack(track.id)
+      .then(videos => {
+        if (cancelled) return;
+        setVideo(videos.length > 0 ? videos[0] : null);
+      })
+      .catch(() => {
+        if (!cancelled) setVideo(null);
+      });
+    return () => { cancelled = true; };
+  }, [track?.id]);
 
   const loadComments = useCallback(async (trackId: string) => {
     try {
@@ -225,6 +244,9 @@ export default function Player({
 
       {/* Controls */}
       <div className="controls-wrap">
+        {/* Video player — only mounts when the current track has a linked video. */}
+        {video && <VideoPlayer video={video} />}
+
         {/* Waveform visualization */}
         {audioUrl && !isLoading && (
           <Waveform
